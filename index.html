@@ -266,9 +266,9 @@ const code='LOVE-'+Math.random().toString(16).slice(2,6).toUpperCase();
 
 /* ---------- Benachrichtigung an dich (funktioniert erst online, nicht in der Vorschau) ---------- */
 const CONFIG={
-  discordWebhook:'', // Discord-Webhook-URL, z.B. 'https://discord.com/api/webhooks/...'
-  ntfyTopic:'',      // ntfy-Topic (schwer zu erraten!), z.B. 'date-einladung-7f3k9q2x'
-  web3formsKey:''    // Access Key von web3forms.com -> kommt als E-Mail
+  discordWebhook:'',
+  ntfyTopic:'date-n8800-k4x9p2',
+  web3formsKey:'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 };
 function notify(msg){
   const text=msg+'\n🕒 '+new Date().toLocaleString('de-DE');
