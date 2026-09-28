@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💌 Имам въпрос към теб</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--pink:#ff3d7f;--pink2:#ff7eb3;--deep:#b0154f;--ink:#4a0f2e;--glass:rgba(255,255,255,.58)}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);overflow:hidden;background:linear-gradient(135deg,#ff9a9e,#fecfef 45%,#fbc2eb 70%,#a18cd1);background-size:300% 300%;animation:bg 14s ease infinite;-webkit-tap-highlight-color:transparent}
+@keyframes bg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.hearts{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.hearts span{position:absolute;bottom:-60px;animation:float linear infinite;filter:drop-shadow(0 4px 8px rgba(255,61,127,.25))}
+@keyframes float{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.8}100%{transform:translateY(-115vh) rotate(25deg);opacity:0}}
+
+.screen{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;padding:20px;overflow-y:auto;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s}
+.screen.active{opacity:1;visibility:visible}
+.inner{margin:auto;width:100%;max-width:460px}
+.screen.active .inner{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+
+.card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.75);border-radius:28px;padding:34px 24px;text-align:center;box-shadow:0 20px 60px rgba(176,21,79,.22)}
+h1{font-size:clamp(1.6rem,6.5vw,2.2rem);line-height:1.2;margin:12px 0 10px;color:var(--deep);letter-spacing:-.02em}
+h2{font-size:1.5rem;color:var(--deep);margin:12px 0 6px}
+.sub{font-size:1.02rem;opacity:.85;line-height:1.5;min-height:1.5em}
+.big-emoji{font-size:84px;line-height:1;display:inline-block;animation:bob 2.2s ease-in-out infinite}
+.big-emoji.shake{animation:shake .45s ease,bob 2.2s .45s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px) rotate(-8deg)}40%{transform:translateX(10px) rotate(8deg)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.pop{animation:popIn .7s cubic-bezier(.2,.8,.2,1.5) both,bob 2.2s .7s ease-in-out infinite}
+@keyframes popIn{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1)}}
+
+.step{display:inline-block;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pink);background:rgba(255,255,255,.75);padding:6px 12px;border-radius:99px}
+
+.btn{font:inherit;border:none;cursor:pointer;border-radius:999px;padding:.75em 1.6em;font-weight:700;font-size:1.1rem;touch-action:manipulation;transition:transform .15s,box-shadow .2s,font-size .3s ease,background .2s,opacity .2s}
+.btn:active{transform:scale(.96)}
+.btn-row{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:26px;min-height:60px}
+.btn-yes{background:linear-gradient(135deg,var(--pink),var(--pink2));color:#fff;box-shadow:0 10px 30px rgba(255,61,127,.45);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 10px 30px rgba(255,61,127,.45)}50%{box-shadow:0 10px 46px rgba(255,61,127,.8)}}
+.btn-no{background:#fff;color:var(--deep);border:2px solid rgba(176,21,79,.15);z-index:40;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.08);transition:left .28s cubic-bezier(.2,.8,.2,1),top .28s cubic-bezier(.2,.8,.2,1),opacity .5s,transform .5s}
+.btn-no.gone{opacity:0;transform:scale(0) rotate(120deg);pointer-events:none}
+.btn-main{background:linear-gradient(135deg,var(--pink),var(--pink2));color:#fff;box-shadow:0 10px 30px rgba(255,61,127,.4);margin-top:24px}
+.btn-main:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.76rem;color:#0a9d58;background:rgba(255,255,255,.75);display:inline-block;padding:7px 11px;border-radius:9px;margin-top:16px}
+
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.opt{font:inherit;font-size:.98rem;font-weight:650;color:var(--ink);background:rgba(255,255,255,.78);border:2px solid transparent;border-radius:18px;padding:16px 8px;cursor:pointer;transition:transform .15s,border-color .2s,background .2s,box-shadow .2s;touch-action:manipulation}
+.opt .e{display:block;font-size:1.9rem;margin-bottom:6px}
+.opt:hover{transform:translateY(-3px);border-color:var(--pink2)}
+.opt.sel{background:#fff;border-color:var(--pink);transform:scale(1.05);box-shadow:0 8px 24px rgba(255,61,127,.35)}
+
+.label{font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.07em;color:var(--deep);opacity:.7;margin:22px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{font:inherit;font-weight:650;font-size:.95rem;padding:10px 16px;border-radius:99px;border:2px solid transparent;background:rgba(255,255,255,.78);color:var(--ink);cursor:pointer;touch-action:manipulation;transition:.2s}
+.chip:hover{border-color:var(--pink2)}
+.chip.sel{background:var(--pink);color:#fff;box-shadow:0 6px 18px rgba(255,61,127,.4)}
+
+.meter-val{font-size:3.6rem;font-weight:900;color:var(--pink);margin:16px 0 4px;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:99px;background:linear-gradient(90deg,var(--pink),var(--pink2)) 0/var(--p,50%) 100% no-repeat,rgba(255,255,255,.85);outline:none;margin:16px 0 14px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;border-radius:50%;background:#fff;border:4px solid var(--pink);box-shadow:0 4px 14px rgba(255,61,127,.5)}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:#fff;border:4px solid var(--pink);box-shadow:0 4px 14px rgba(255,61,127,.5)}
+input[type=range]:disabled{cursor:wait}
+
+/* Terminal */
+#s-boot{background:radial-gradient(circle at 50% 40%,#2a0a1e 0%,#07070c 70%);z-index:5}
+.terminal{background:rgba(13,13,20,.96);border:1px solid rgba(255,121,198,.25);border-radius:14px;overflow:hidden;box-shadow:0 0 70px rgba(255,61,127,.28);font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+.term-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#1a1a26;position:relative}
+.term-bar i{width:12px;height:12px;border-radius:50%;display:block}
+.term-bar em{position:absolute;left:0;right:0;text-align:center;font-style:normal;color:#8a8aa3;font-size:.8rem;pointer-events:none}
+.term-body{padding:18px 16px 10px;color:#e6e6f0;font-size:.9rem;line-height:1.8;min-height:240px}
+.term-body .p{color:#ff79c6}
+.term-body .st{color:#50fa7b}
+.term-body .hl{color:#ffb86c;font-weight:700}
+.cursor{display:inline-block;width:8px;height:1.05em;background:#ff79c6;vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.btn-term{display:block;width:calc(100% - 32px);margin:6px 16px 18px;background:linear-gradient(135deg,var(--pink),#bd5cff);color:#fff;box-shadow:0 0 30px rgba(255,61,127,.5);animation:rise .5s both,pulse 1.6s .5s ease-in-out infinite}
+.hidden{display:none}
+
+/* Ticket */
+.t-title{text-align:center;margin-bottom:18px}
+.ticket{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 60px rgba(176,21,79,.3);text-align:left}
+.t-head{background:linear-gradient(135deg,var(--pink),#a18cd1);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:900;letter-spacing:.06em;font-size:.95rem}
+.t-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;background:rgba(255,255,255,.25);padding:5px 10px;border-radius:8px;letter-spacing:.04em}
+.t-body{padding:8px 22px}
+.t-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px dashed rgba(176,21,79,.16);font-size:.93rem}
+.t-row:last-child{border-bottom:none}
+.t-row span{opacity:.55;flex-shrink:0}
+.t-row b{text-align:right}
+.t-cut{border-top:2px dashed rgba(176,21,79,.22);margin:4px 22px 0}
+.t-foot{display:flex;align-items:center;gap:18px;padding:18px 22px 8px}
+.barcode{height:46px;flex:1;background:repeating-linear-gradient(90deg,#2b0a1c 0 2px,transparent 2px 4px,#2b0a1c 4px 5px,transparent 5px 8px,#2b0a1c 8px 11px,transparent 11px 13px);opacity:.85;border-radius:3px}
+.stamp{border:3px solid #0a9d58;color:#0a9d58;font-weight:900;font-size:.8rem;letter-spacing:.08em;padding:6px 10px;border-radius:8px;opacity:0;transform:rotate(-12deg)}
+.screen.active .stamp{animation:stamp .45s .9s cubic-bezier(.2,.8,.2,1.4) forwards}
+@keyframes stamp{from{opacity:0;transform:rotate(-12deg) scale(2.8)}to{opacity:.92;transform:rotate(-12deg) scale(1)}}
+.t-note{padding:2px 22px 18px;font-size:.78rem;opacity:.55}
+.final-msg{text-align:center;font-size:1.35rem;font-weight:900;color:var(--deep);margin:24px 0 0}
+.hint{text-align:center;font-size:.9rem;opacity:.75;margin-top:12px}
+.link{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:.9rem;color:var(--deep);opacity:.65;cursor:pointer;text-decoration:underline}
+.made{text-align:center;font-size:.74rem;opacity:.5;margin-top:16px}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="hearts" id="hearts"></div>
+
+<!-- 1. Терминал -->
+<section class="screen active" id="s-boot">
+  <div class="inner">
+    <div class="terminal">
+      <div class="term-bar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><em>love.exe</em></div>
+      <div class="term-body" id="termBody"></div>
+      <button class="btn btn-term hidden" id="openBtn">Отвори съобщението 💌</button>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Въпросът -->
+<section class="screen" id="s-ask">
+  <div class="inner">
+    <div class="card">
+      <div class="big-emoji" id="askEmoji">🥺</div>
+      <h1>Ще излезеш ли на среща с мен?</h1>
+      <p class="sub" id="askSub">Мисли внимателно... 😌</p>
+      <div class="btn-row">
+        <button class="btn btn-yes" id="yesBtn">Да 💖</button>
+        <button class="btn btn-no" id="noBtn">Не 😢</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Да! -->
+<section class="screen" id="s-yay">
+  <div class="inner">
+    <div class="card">
+      <div class="big-emoji pop">🥰</div>
+      <h1>Знаех си! 🎉</h1>
+      <p class="sub">Току-що ме направи най-щастливия човек на света 💖<br>Остават само няколко подробности...</p>
+      <div class="mono">✔ Отговорът е записан в базата данни на сърцето ми</div><br>
+      <button class="btn btn-main" data-next="s-what">Да уточним ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Какво -->
+<section class="screen" id="s-what">
+  <div class="inner">
+    <div class="card">
+      <div class="step">Стъпка 1 от 4</div>
+      <h2>Какво ще правим? ✨</h2>
+      <p class="sub">Избери каквото искаш — аз черпя 😎</p>
+      <div class="options" data-key="what" data-next="s-food">
+        <button class="opt" data-v="Романтична вечеря 🍷"><span class="e">🍷</span>Романтична вечеря</button>
+        <button class="opt" data-v="Кино с пуканки 🎬"><span class="e">🎬</span>Кино с пуканки</button>
+        <button class="opt" data-v="Кафе и десерт ☕"><span class="e">☕</span>Кафе и десерт</button>
+        <button class="opt" data-v="Разходка под звездите 🌙"><span class="e">🌙</span>Разходка под звездите</button>
+        <button class="opt" data-v="Боулинг 🎳"><span class="e">🎳</span>Боулинг</button>
+        <button class="opt" data-v="Изненада 🎁"><span class="e">🎁</span>Изненадай ме!</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Храна -->
+<section class="screen" id="s-food">
+  <div class="inner">
+    <div class="card">
+      <div class="step">Стъпка 2 от 4</div>
+      <h2>Какво ще хапнем? 😋</h2>
+      <p class="sub">Храната е важна. Много важна. 🍴</p>
+      <div class="options" data-key="food" data-next="s-when">
+        <button class="opt" data-v="Пица 🍕"><span class="e">🍕</span>Пица</button>
+        <button class="opt" data-v="Суши 🍣"><span class="e">🍣</span>Суши</button>
+        <button class="opt" data-v="Бургери 🍔"><span class="e">🍔</span>Бургери</button>
+        <button class="opt" data-v="Паста 🍝"><span class="e">🍝</span>Паста</button>
+        <button class="opt" data-v="Нещо леко 🥗"><span class="e">🥗</span>Нещо леко</button>
+        <button class="opt" data-v="Само десерти 🍫"><span class="e">🍫</span>Само десерти</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Кога -->
+<section class="screen" id="s-when">
+  <div class="inner">
+    <div class="card">
+      <div class="step">Стъпка 3 от 4</div>
+      <h2>Кога? 📅</h2>
+      <p class="sub">Колкото по-скоро, толкова по-добре 😌</p>
+      <p class="label">Ден</p>
+      <div class="chips" data-key="day">
+        <button class="chip" data-v="Събота, 10 октомври">Сб 10.10</button>
+        <button class="chip" data-v="Неделя, 11 октомври">Нд 11.10</button>
+        <button class="chip" data-v="Понеделник, 12 октомври">Пн 12.10</button>
+        <button class="chip" data-v="Вторник, 13 октомври">Вт 13.10</button>
+        <button class="chip" data-v="Сряда, 14 октомври">Ср 14.10</button>
+        <button class="chip" data-v="Четвъртък, 15 октомври">Чт 15.10</button>
+        <button class="chip" data-v="Петък, 16 октомври">Пт 16.10</button>
+        <button class="chip" data-v="Събота, 17 октомври">Сб 17.10</button>
+        <button class="chip" data-v="Неделя, 18 октомври">Нд 18.10</button>
+      </div>
+      <p class="label">Час</p>
+      <div class="chips" data-key="time">
+        <button class="chip">17:00</button>
+        <button class="chip">18:30</button>
+        <button class="chip">20:00</button>
+        <button class="chip">21:30</button>
+      </div>
+      <button class="btn btn-main" id="whenNext" disabled>Напред ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Вълнение -->
+<section class="screen" id="s-mood">
+  <div class="inner">
+    <div class="card">
+      <div class="step">Стъпка 4 от 4</div>
+      <h2>Колко се вълнуваш? 🤭</h2>
+      <div class="meter-val" id="moodVal">50%</div>
+      <input type="range" id="mood" min="0" max="100" value="50">
+      <p class="sub" id="moodMsg">Плъзни и бъди честна 😏</p>
+      <button class="btn btn-main" id="moodNext">Потвърди ✔</button>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Билет -->
+<section class="screen" id="s-ticket">
+  <div class="inner">
+    <h2 class="t-title">Готово! Ето го твоят билет 🎟️</h2>
+    <div class="ticket">
+      <div class="t-head"><div>💌 ПОТВЪРЖДЕНИЕ</div><div class="t-code" id="tCode">LOVE-0000</div></div>
+      <div class="t-body">
+        <div class="t-row"><span>Събитие</span><b>Среща с мен 💖</b></div>
+        <div class="t-row"><span>Какво</span><b id="tWhat"></b></div>
+        <div class="t-row"><span>Храна</span><b id="tFood"></b></div>
+        <div class="t-row"><span>Кога</span><b id="tWhen"></b></div>
+        <div class="t-row"><span>Вълнение</span><b id="tMood"></b></div>
+        <div class="t-row"><span>Дрескод</span><b>Твоята усмивка 😊</b></div>
+        <div class="t-row"><span>Бонус</span><b>Прегръдки без лимит 🤗</b></div>
+      </div>
+      <div class="t-cut"></div>
+      <div class="t-foot"><div class="barcode"></div><div class="stamp">ПОТВЪРДЕНО</div></div>
+      <p class="t-note">Билетът не подлежи на връщане или отказ 😌</p>
+    </div>
+    <p class="final-msg">Нямам търпение да те видя! 💖</p>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-main" id="copyBtn" style="margin-top:0">📋 Копирай и ми го прати</button>
+    </div>
+    <p class="hint" id="copyHint">…или просто направи скрийншот 😘</p>
+    <button class="link" id="restart">↺ Искам да променя нещо</button>
+    <p class="made">направено с ❤️ и малко код</p>
+  </div>
+</section>
+
+<script>
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const A={what:null,food:null,day:null,time:null,mood:null};
+const code='LOVE-'+Math.random().toString(16).slice(2,6).toUpperCase();
+
+/* ---------- Benachrichtigung an dich (funktioniert erst online, nicht in der Vorschau) ---------- */
+const CONFIG={
+  discordWebhook:'', // Discord-Webhook-URL, z.B. 'https://discord.com/api/webhooks/...'
+  ntfyTopic:'',      // ntfy-Topic (schwer zu erraten!), z.B. 'date-einladung-7f3k9q2x'
+  web3formsKey:''    // Access Key von web3forms.com -> kommt als E-Mail
+};
+function notify(msg){
+  const text=msg+'\n🕒 '+new Date().toLocaleString('de-DE');
+  try{
+    if(CONFIG.discordWebhook){const f=new FormData();f.append('content',text);fetch(CONFIG.discordWebhook,{method:'POST',body:f,mode:'no-cors'}).catch(()=>{});}
+    if(CONFIG.ntfyTopic){fetch('https://ntfy.sh/'+encodeURIComponent(CONFIG.ntfyTopic)+'?title='+encodeURIComponent('💌 love.exe'),{method:'POST',body:text,mode:'no-cors'}).catch(()=>{});}
+    if(CONFIG.web3formsKey){const f=new FormData();f.append('access_key',CONFIG.web3formsKey);f.append('subject','💌 Update zu deiner Date-Einladung');f.append('from_name','love.exe');f.append('message',text);fetch('https://api.web3forms.com/submit',{method:'POST',body:f,mode:'no-cors'}).catch(()=>{});}
+  }catch(e){}
+}
+
+/* ---------- Floating hearts ---------- */
+(()=>{const H=['💖','💕','💗','💘','💓','✨','🌸'],w=$('hearts');
+for(let i=0;i<22;i++){const s=document.createElement('span');s.textContent=H[i%H.length];s.style.left=Math.random()*100+'%';s.style.fontSize=(14+Math.random()*26)+'px';s.style.animationDuration=(9+Math.random()*10)+'s';s.style.animationDelay=(-Math.random()*18)+'s';w.appendChild(s);}})();
+
+/* ---------- Confetti ---------- */
+const cv=$('fx'),cx=cv.getContext('2d');let P=[],running=false;const dpr=Math.min(window.devicePixelRatio||1,2);
+function size(){cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;cx.setTransform(dpr,0,0,dpr,0,0);}
+size();addEventListener('resize',size);
+const COLS=['#ff3d7f','#ff7eb3','#ffd166','#a18cd1','#ffffff','#ff5c8a'];
+function burst(x,y,n=40,power=9,up=true){
+  for(let i=0;i<n;i++){const a=up?(-Math.PI/2+(Math.random()-.5)*Math.PI*.9):Math.random()*Math.PI*2;const v=power*(.45+Math.random()*.75);
+    P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,s:6+Math.random()*8,c:COLS[Math.random()*COLS.length|0],h:Math.random()<.5,life:0,max:90+Math.random()*70});}
+  if(!running){running=true;requestAnimationFrame(tick);}
+}
+function heart(s){cx.beginPath();cx.moveTo(0,s*.3);cx.bezierCurveTo(0,0,-s*.5,0,-s*.5,s*.3);cx.bezierCurveTo(-s*.5,s*.6,0,s*.8,0,s);cx.bezierCurveTo(0,s*.8,s*.5,s*.6,s*.5,s*.3);cx.bezierCurveTo(s*.5,0,0,0,0,s*.3);cx.fill();}
+function tick(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  P=P.filter(p=>p.life<p.max&&p.y<innerHeight+40);
+  for(const p of P){p.life++;p.vx*=.99;p.vy=p.vy*.99+.22;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+    cx.save();cx.globalAlpha=Math.max(0,1-p.life/p.max);cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;
+    if(p.h){const s=p.s*1.4;cx.translate(0,-s/2);heart(s);}else cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);
+    cx.restore();}
+  if(P.length)requestAnimationFrame(tick);else{running=false;cx.clearRect(0,0,innerWidth,innerHeight);}
+}
+function party(){const w=innerWidth,h=innerHeight;burst(w*.15,h,70,16);burst(w*.85,h,70,16);
+  setTimeout(()=>burst(w*.5,h*.45,60,11,false),250);setTimeout(()=>{burst(w*.3,h,50,15);burst(w*.7,h,50,15);},650);}
+
+/* ---------- Navigation ---------- */
+function go(id){const c=document.querySelector('.screen.active');if(c)c.classList.remove('active');const s=$(id);s.classList.add('active');s.scrollTop=0;}
+document.querySelectorAll('button[data-next]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.next)));
+
+/* ---------- Boot sequence ---------- */
+const boot=[
+  ['Стартиране на love.exe','✔'],
+  ['Проверка на сърдечния ритъм','ускорен ❤️'],
+  ['Търсене на най-красивото момиче','1 резултат ✔'],
+  ['Зареждане на смелост','100% ✔'],
+  ['Подготовка на много важен въпрос','готово ✔']
+];
+(async()=>{
+  const tb=$('termBody'),cur=document.createElement('span');cur.className='cursor';
+  await sleep(500);
+  for(const [txt,st] of boot){
+    const line=document.createElement('div');line.innerHTML='<span class="p">&gt;</span> ';
+    const t=document.createElement('span');line.appendChild(t);line.appendChild(cur);tb.appendChild(line);
+    for(const ch of txt){t.textContent+=ch;await sleep(15+Math.random()*25);}
+    for(let i=0;i<3;i++){t.textContent+='.';await sleep(130);}
+    const s=document.createElement('span');s.className='st';s.textContent=' '+st;line.insertBefore(s,cur);
+    await sleep(250);
+  }
+  const last=document.createElement('div');last.innerHTML='<span class="p">&gt;</span> <span class="hl">Имаш 1 ново съобщение 💌</span>';
+  last.appendChild(cur);tb.appendChild(last);
+  await sleep(450);$('openBtn').classList.remove('hidden');
+})();
+$('openBtn').addEventListener('click',()=>{notify('👀 Sie hat die Einladung geöffnet!');go('s-ask');setTimeout(()=>burst(innerWidth/2,innerHeight/2,30,8,false),200);});
+
+/* ---------- The runaway "No" button ---------- */
+const yes=$('yesBtn'),no=$('noBtn'),askE=$('askEmoji'),askS=$('askSub');
+const noT=['Сигурна ли си?','Наистина ли? 🤨','Помисли пак 🤔','Не се шегувай 😅','Моля те 🥺','Последен шанс!','Ще се разплача... 😭','Сърцето ми 💔','Добре де... 😔','404 🤖'];
+const subT=['Опа, изплъзна се! 😏','Този бутон май се страхува от теб 😂','Бутонът „Да“ е много по-удобен 💖','Виждаш ли колко расте „Да“? 👀','Системата не приема такъв отговор 🤖','Хайде де... 🥹','Не ме карай да плача 😢','Сериозно? Още пробваш? 😅','Добре, ще се наложи да кажеш „Да“ 😇','Грешка 404: отговорът „Не“ не съществува 🤖'];
+const emo=['😳','🤨','🥺','😟','😢','😭','💔','🥹','😿','🤖'];
+let tries=0,lastT=0,loose=false,mx=-999,my=-999;
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+function dodge(e){
+  if(e&&e.cancelable)e.preventDefault();
+  const now=Date.now();if(now-lastT<220||tries>=noT.length)return;lastT=now;
+  const i=tries++;
+  no.textContent=noT[i];askS.textContent=subT[i];askE.textContent=emo[i];
+  askE.classList.remove('shake');void askE.offsetWidth;askE.classList.add('shake');
+  yes.style.fontSize=Math.min(1.1+tries*.22,3.3)+'rem';
+  if(!loose){loose=true;const r=no.getBoundingClientRect();no.style.position='fixed';no.style.left=r.left+'px';no.style.top=r.top+'px';document.body.appendChild(no);void no.offsetWidth;}
+  const w=no.offsetWidth,h=no.offsetHeight,vw=innerWidth,vh=innerHeight,pad=14,y=yes.getBoundingClientRect();
+  let x,t,k=0,bad;
+  do{x=pad+Math.random()*Math.max(0,vw-w-pad*2);t=pad+Math.random()*Math.max(0,vh-h-pad*2);k++;
+    const hitYes=x<y.right+20&&x+w>y.left-20&&t<y.bottom+20&&t+h>y.top-20;
+    const hitMouse=Math.abs(x+w/2-mx)<w&&Math.abs(t+h/2-my)<h+50;
+    bad=hitYes||hitMouse;}while(k<50&&bad);
+  no.style.left=x+'px';no.style.top=t+'px';
+  if(tries>=noT.length)setTimeout(()=>no.classList.add('gone'),700);
+}
+no.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)dodge();});
+no.addEventListener('touchstart',dodge,{passive:false});
+no.addEventListener('click',dodge);
+yes.addEventListener('click',()=>{notify('💖 Sie hat JA gesagt! (Versuche, auf „Nein“ zu drücken: '+tries+')');no.remove();go('s-yay');party();});
+
+/* ---------- Options ---------- */
+document.querySelectorAll('.options').forEach(g=>g.addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b||g.dataset.lock)return;g.dataset.lock='1';
+  g.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));b.classList.add('sel');
+  A[g.dataset.key]=b.dataset.v;
+  const r=b.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,26,7,false);
+  setTimeout(()=>{delete g.dataset.lock;go(g.dataset.next);},560);
+}));
+
+/* ---------- Day & time ---------- */
+const whenNext=$('whenNext');
+document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{
+  const b=e.target.closest('.chip');if(!b)return;
+  g.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));b.classList.add('sel');
+  A[g.dataset.key]=b.dataset.v||b.textContent.trim();
+  whenNext.disabled=!(A.day&&A.time);
+}));
+whenNext.addEventListener('click',()=>go('s-mood'));
+
+/* ---------- Excitement meter (with "auto-correction") ---------- */
+const mood=$('mood'),mv=$('moodVal'),mm=$('moodMsg');let fixing=false;
+function label(v){return v>=100?'Максимално! 🚀':v>=90?'Точно като мен 😍':v>=70?'Добре, добре... 😏':v>=40?'Хмм... 🤨':'Моля?! 😳';}
+function setMood(v){mood.value=v;mv.textContent=Math.round(v)+'%';mood.style.setProperty('--p',v+'%');}
+setMood(50);
+mood.addEventListener('input',()=>{if(fixing)return;setMood(+mood.value);mm.textContent=label(+mood.value);});
+function check(){
+  if(fixing)return true;
+  if(+mood.value>=70)return false;
+  fixing=true;mood.disabled=true;mm.textContent='⚠️ Засечена грешка в системата...';
+  setTimeout(()=>{let v=+mood.value;const step=()=>{v=Math.min(100,v+2.5);setMood(v);
+    if(v<100)requestAnimationFrame(step);
+    else{mm.textContent='Стойността е коригирана на 100% ✔ Така е по-правилно 😌';mood.disabled=false;fixing=false;
+      const r=mv.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,30,8,false);}};step();},900);
+  return true;
+}
+mood.addEventListener('change',check);
+$('moodNext').addEventListener('click',()=>{
+  if(check())return;
+  A.mood=Math.round(+mood.value)+'%';
+  $('tCode').textContent=code;$('tWhat').textContent=A.what;$('tFood').textContent=A.food;
+  $('tWhen').textContent=A.day+', '+A.time+' ч.';$('tMood').textContent=A.mood;
+  notify('✅ Date bestätigt! ('+code+')\nWas: '+A.what+'\nEssen: '+A.food+'\nWann: '+A.day+', '+A.time+' Uhr\nVorfreude: '+A.mood);
+  go('s-ticket');party();
+});
+
+/* ---------- Copy ---------- */
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true;}catch(e){
+    try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e2){return false;}
+  }
+}
+$('copyBtn').addEventListener('click',async()=>{
+  const t=`💌 Среща – ПОТВЪРДЕНА ✅\nКод: ${code}\nКакво: ${A.what}\nХрана: ${A.food}\nКога: ${A.day}, ${A.time} ч.\nВълнение: ${A.mood}\nБилетът не подлежи на връщане или отказ 😌`;
+  if(await copyText(t)){$('copyBtn').textContent='Копирано ✔ Прати ми го 😘';}
+  else{$('copyHint').textContent='Не успях да копирам 🙈 Направи скрийншот и ми го прати 😘';}
+});
+
+/* ---------- Restart choices ---------- */
+$('restart').addEventListener('click',()=>{
+  A.what=A.food=A.day=A.time=A.mood=null;
+  document.querySelectorAll('.opt.sel,.chip.sel').forEach(x=>x.classList.remove('sel'));
+  whenNext.disabled=true;setMood(50);mm.textContent='Плъзни и бъди честна 😏';
+  $('copyBtn').textContent='📋 Копирай и ми го прати';$('copyHint').textContent='…или просто направи скрийншот 😘';
+  go('s-what');
+});
+</script>
+</body>
+</html>
